@@ -1,4 +1,6 @@
 # Create your views here.
+import os
+
 from rest_framework import status
 from rest_framework.decorators import permission_classes, api_view
 from rest_framework.permissions import AllowAny
@@ -40,3 +42,36 @@ def comments(request, id):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+@api_view(['POST'])
+@permission_classes((AllowAny,))
+def loadImage(request, id):
+
+    try:
+        post = Post.objects.get(pk=id)
+    except:
+        return Response("Post with {} does not exists".format(id), status=status.HTTP_400_BAD_REQUEST)
+
+    file = request.FILES['image']
+    extension = file.name.split('.')[-1]
+    if not (extension in ['jpg', 'png']):
+        return Response("incorrect image file", status=status.HTTP_400_BAD_REQUEST)
+
+    # create directory if not exists
+    path = 'static/media/'
+    try:
+        os.makedirs(path)
+    except:
+        pass
+
+    filename = "post_title_img_{}.{}".format(id, extension)
+
+    # write file to the static storage
+    with open(path + filename, 'wb+') as destination:
+        for chunk in file.chunks():
+            destination.write(chunk)
+
+    # link file to the related post object
+    post.image = filename
+    post.save()
+
+    return Response(status=status.HTTP_201_CREATED)
