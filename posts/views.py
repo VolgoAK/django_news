@@ -25,6 +25,32 @@ def posts(request):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+@api_view(['GET'])
+@permission_classes((AllowAny,))
+def post_by_id(requst, id):
+    try:
+        post = Post.objects.get(pk=id)
+        serializer = PostSerializer(post)
+        return Response(serializer.data)
+    except:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+
+@api_view(['POST'])
+@permission_classes((AllowAny,))
+def add_claps(request):
+    claps = request.data['value']
+    id = request.data['post_id']
+    try:
+        post = Post.objects.get(pk=id)
+    except:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+    post.votes += claps
+    post.save()
+    return Response(status=status.HTTP_200_OK)
+
+
 @api_view(['GET', 'POST'])
 @permission_classes((AllowAny,))
 def comments(request, id):
