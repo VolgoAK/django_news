@@ -11,5 +11,5 @@ class Post(models.Model):
 class Comment(models.Model):
     text = models.CharField(max_length=300)
     author_name = models.CharField(max_length=300)
-    pub_date = models.DateTimeField('date_published')
+    pub_date = models.DateTimeField('date_published', auto_now_add=True)
     post = models.ForeignKey(Post, on_delete=models.CASCADE)

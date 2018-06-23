@@ -14,7 +14,7 @@ def posts(request):
     if request.method == "GET":
         posts = Post.objects.order_by('-pub_date')
         serializer = PostSerializer(posts, many=True)
-        return Response(serializer)
+        return Response(serializer.data)
     elif request.method == "POST":
         serializer = PostSerializer(data=request.data)
         if serializer.is_valid():
@@ -23,9 +23,20 @@ def posts(request):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-@api_view(['GET', ])
-@permission_classes((AllowAny))
+@api_view(['GET', 'POST'])
+@permission_classes((AllowAny,))
 def comments(request, id):
-    commentss = Comment.objects.filter(post__id=id).order_by('-pub_date')
-    serializer = CommentSerializer(commentss, many=True)
-    return Response(serializer)
+    if request.method == 'GET':
+        commentss = Comment.objects.filter(post__id=id).order_by('-pub_date')
+        serializer = CommentSerializer(commentss, many=True)
+        return Response(serializer.data)
+    elif request.method == 'POST':
+        request.data['post'] = id
+        serializer = CommentSerializer(data=request.data)
+        print(serializer)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
