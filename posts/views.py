@@ -1,7 +1,7 @@
 # Create your views here.
 import os
 
-from rest_framework import status
+from rest_framework import status, permissions
 from rest_framework.decorators import permission_classes, api_view
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
@@ -23,6 +23,14 @@ def posts(request):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['GET'])
+@permission_classes((permissions.IsAuthenticated,))
+def private_posts(request):
+    posts = Post.objects.order_by('-pub_date')
+    serializer = PostSerializer(posts, many=True)
+    return Response(serializer.data)
 
 
 @api_view(['GET'])
@@ -71,7 +79,6 @@ def comments(request, id):
 @api_view(['POST'])
 @permission_classes((AllowAny,))
 def loadImage(request, id):
-
     try:
         post = Post.objects.get(pk=id)
     except:
